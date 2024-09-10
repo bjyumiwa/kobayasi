@@ -1,0 +1,166 @@
+<html><head><base href="https://websim.creation.engine/interactive-html-editor-with-io/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>インタラクティブHTMLエディタ（入出力機能付き）</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f8ff;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  h1, h2 {
+    color: #4169e1;
+  }
+  h1 {
+    text-align: center;
+  }
+  .editor-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .code-editor, .preview {
+    flex: 1 1 45%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+  }
+  #htmlEditor {
+    width: 100%;
+    height: 400px;
+    font-family: monospace;
+    padding: 10px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+  }
+  .preview {
+    background-color: #fff;
+  }
+  button {
+    background-color: #4169e1;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+  button:hover {
+    background-color: #1e90ff;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>インタラクティブHTMLエディタ（入出力機能付き）</h1>
+    
+    <div class="editor-container">
+      <div class="code-editor">
+        <h2>HTMLエディタ</h2>
+        <textarea id="htmlEditor" placeholder="HTMLコードを入力してください"></textarea>
+        <button id="updatePreviewBtn">プレビューを更新</button>
+        <button id="resetBtn">リセット</button>
+      </div>
+      <div class="preview">
+        <h2>プレビュー</h2>
+        <div id="previewArea"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const htmlEditor = document.getElementById('htmlEditor');
+    const updatePreviewBtn = document.getElementById('updatePreviewBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const previewArea = document.getElementById('previewArea');
+
+    // 初期HTMLコード
+    const initialHTML = `
+<h2>インタラクティブ入出力エリア</h2>
+<textarea id="userInput" placeholder="テキストを入力してください" rows="4" cols="50"></textarea>
+<br>
+<button onclick="processInput()">処理</button>
+<div id="outputArea"></div>
+
+<script>
+  // 禁止ワードのリスト
+  const forbiddenWords = ['暴力', '差別', '攻撃'];
+
+  function processInput() {
+    const input = document.getElementById('userInput').value;
+    const outputArea = document.getElementById('outputArea');
+    outputArea.innerHTML = ''; // 出力エリアをクリア
+
+    // 禁止ワードのチェック
+    const containsForbiddenWord = forbiddenWords.some(word => input.includes(word));
+
+    if (containsForbiddenWord) {
+      const errorOutput = document.createElement('p');
+      errorOutput.style.color = 'red';
+      errorOutput.textContent = '禁止ワードが含まれています。';
+      outputArea.appendChild(errorOutput);
+    } else {
+      // 複数の出力を生成
+      const outputs = [
+        \`通常の出力: \${input}\`,
+        \`大文字: \${input.toUpperCase()}\`,
+        \`文字数: \${input.length}文字\`,
+        \`逆順: \${input.split('').reverse().join('')}\`
+      ];
+
+      outputs.forEach(output => {
+        const outputElement = document.createElement('p');
+        outputElement.textContent = output;
+        outputArea.appendChild(outputElement);
+      });
+    }
+  }
+<\/script>
+`;
+
+    // エディタを初期化
+    htmlEditor.value = initialHTML;
+    updatePreview();
+
+    // プレビューを更新する関数
+    function updatePreview() {
+      // 既存のスクリプトを実行可能な状態で挿入
+      const scriptContent = htmlEditor.value.match(/<script>([\s\S]*)<\/script>/);
+      const htmlWithoutScript = htmlEditor.value.replace(/<script>[\s\S]*<\/script>/, '');
+      
+      previewArea.innerHTML = htmlWithoutScript;
+      
+      if (scriptContent && scriptContent[1]) {
+        const script = document.createElement('script');
+        script.textContent = scriptContent[1];
+        previewArea.appendChild(script);
+      }
+    }
+
+    // 「プレビューを更新」ボタンのイベントリスナー
+    updatePreviewBtn.addEventListener('click', updatePreview);
+
+    // 「リセット」ボタンのイベントリスナー
+    resetBtn.addEventListener('click', function() {
+      htmlEditor.value = initialHTML;
+      updatePreview();
+    });
+
+    // エディタの内容が変更されたときに自動的にプレビューを更新
+    htmlEditor.addEventListener('input', function() {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(updatePreview, 500);
+    });
+  </script>
+</body></html>
